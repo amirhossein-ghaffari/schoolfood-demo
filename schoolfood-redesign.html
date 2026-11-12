@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchoolFood | دموی بازطراحی‌شده</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --navy: #0f172a;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --bg: #f8fafc;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --card: #ffffff;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Vazirmatn, system-ui, sans-serif;
+      color: var(--navy);
+      margin: 0;
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+    :focus-visible { outline: 3px solid #14b8a6; outline-offset: 2px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-weight: 700;
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+      font-size: 14px;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .primary { background: var(--navy); color: #fff; }
+    .primary:hover:not(:disabled) { background: #1e293b; }
+    .accent { background: var(--teal); color: #fff; }
+    .accent:hover:not(:disabled) { background: #0f766e; }
+    .outline {
+      border-color: var(--line);
+      background: #fff;
+      color: var(--navy);
+    }
+    .outline:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
+    .danger-btn {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+    .danger-btn:hover:not(:disabled) { background: #fee2e2; }
+
+    .field {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 11px 14px;
+      background: #fff;
+      min-height: 46px;
+      transition: border-color 0.15s;
+    }
+    .field:focus {
+      border-color: var(--teal);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .muted { color: var(--muted); }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #0f766e;
+      text-transform: uppercase;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      text-align: right;
+      color: #94a3b8;
+      transition: all 0.18s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .nav-btn:hover { background: #1e293b; color: #e2e8f0; }
+    .nav-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: inset -3px 0 0 var(--teal);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .confirmed { color: #047857; background: #d1fae5; }
+    .pending { color: #b45309; background: #fef3c7; }
+    .cancelled { color: #b91c1c; background: #fee2e2; }
+    .delivered { color: #1d4ed8; background: #dbeafe; }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fadeUp 0.35s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat { border-top: 3px solid var(--teal); }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 640px;
+      text-align: right;
+    }
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    th {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      background: #f8fafc;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f8fafc; }
+
+    .food-photo {
+      height: 160px;
+      width: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+      background: #f0fdfa;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 100;
+      max-width: min(380px, calc(100% - 48px));
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: var(--navy);
+      color: white;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+    }
+    #toast.show { display: block; animation: toastIn 0.3s ease; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .role-card {
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .role-card:hover {
+      border-color: var(--teal);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(13, 148, 136, 0.12);
+    }
+
+    @media (max-width: 900px) {
+      #shell { display: block !important; }
+      #sidebar {
+        width: 100% !important;
+        position: relative !important;
+        min-height: 0 !important;
+      }
+      #sidebar nav {
+        display: flex;
+        overflow-x: auto;
+        gap: 6px;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+      }
+      #sidebar .nav-btn {
+        width: auto;
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+      #sidebar .side-foot { display: none; }
+    }
+    @media (max-width: 640px) {
+      #welcome h1 { font-size: clamp(32px, 12vw, 48px) !important; }
+      .food-photo { height: 140px; }
+      table { min-width: 560px; }
+    }
+
+    @media print {
+      #sidebar, #topbar, .no-print, #toast { display: none !important; }
+      #workspace { padding: 0 !important; }
+      .view { display: none !important; }
+      #vendor-report.view { display: block !important; }
+      body { background: #fff !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Welcome / Role Selection -->
+  <div id="welcome" class="min-h-screen flex items-center justify-center p-5"
+       style="background: radial-gradient(ellipse at 80% 0%, #ccfbf1 0%, transparent 50%), #f8fafc;">
+    <main class="w-full max-w-5xl grid lg:grid-cols-2 gap-10 items-center">
+      <section>
+        <div class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm mb-6 border border-slate-100">
+          <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+          <span class="eyebrow">سامانه هوشمند تغذیه مدرسه</span>
+        </div>
+        <h1 class="font-extrabold leading-tight mb-4" style="font-size: clamp(36px, 5vw, 64px);">
+          SchoolFood
+        </h1>
+        <p class="muted leading-8 max-w-md text-[15px]">
+          مدیریت سفارش غذا و کیف پول دانش‌آموزی با تفکیک کامل نقش‌ها.
+          هر نقش فقط به بخش‌های مربوط به خودش دسترسی دارد.
+        </p>
+        <p class="text-sm muted mt-4">نسخه نمایشی · داده‌ها آزمایشی هستند</p>
+      </section>
+
+      <section class="card p-7 md:p-8">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+             style="background: #ccfbf1; color: #0f766e;">
+          <i data-lucide="utensils" style="width:24px;height:24px"></i>
+        </div>
+        <h2 class="font-bold text-lg mb-1">انتخاب نقش</h2>
+        <p class="muted text-sm mb-6">برای مشاهده محیط، یکی از نقش‌ها را انتخاب کنید.</p>
+
+        <div class="grid gap-3">
+          <button type="button" data-role="student"
+                  class="role-card card p-4 text-right flex items-center gap-4 hover:border-teal-500">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                 style="background:#0f172a;color:#fff">
+              <i data-lucide="graduation-cap" style="width:20px;height:20px"></i>
+            </div>
+            <div>
+              <p class="font-bold">دانش‌آموز</p>
+              <p class="text-xs muted mt-0.5">سفارش غذا · کیف پول · پیگیری سفارش</p>
+            </div>
+          </button>
+
+          <button type="button" data-role="vendor"
+                  class="role-card card p-4 text-right flex items-center gap-4 hover:border-teal-500">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                 style="background:#0d9488;color:#fff">
+              <i data-lucide="store" style="width:20px;height:20px"></i>
+            </div>
+            <div>
+              <p class="font-bold">فروشنده بوفه</p>
+              <p class="text-xs muted mt-0.5">مدیریت منو · گزارش آماده‌سازی · تحویل</p>
+            </div>
+          </button>
+
+          <button type="button" data-role="admin"
+                  class="role-card card p-4 text-right flex items-center gap-4 hover:border-teal-500">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                 style="background:#334155;color:#fff">
+              <i data-lucide="building-2" style="width:20px;height:20px"></i>
+            </div>
+            <div>
+              <p class="font-bold">مدیریت مدرسه</p>
+              <p class="text-xs muted mt-0.5">دانش‌آموزان · شارژ کیف پول · گزارش‌ها</p>
+            </div>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- App Shell -->
+  <div id="shell" class="hidden min-h-screen lg:flex">
+    <aside id="sidebar" class="w-64 shrink-0 text-white p-5 flex flex-col lg:sticky lg:top-0 lg:self-start lg:min-h-screen"
+           style="background:#0f172a">
+      <div class="flex items-center gap-3 mb-8 px-1">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900"
+             style="background:#14b8a6">S</div>
+        <div>
+          <p class="font-extrabold tracking-tight" dir="ltr">SchoolFood</p>
+          <p class="text-xs text-slate-400" id="sidebar-role">—</p>
+        </div>
+      </div>
+      <nav id="nav" class="space-y-1 flex-1" aria-label="ناوبری اصلی"></nav>
+      <div class="side-foot pt-6 px-1 text-xs text-slate-500 border-t border-slate-800 mt-4">
+        <p>● نسخه نمایشی · داده‌های آزمایشی</p>
+      </div>
+    </aside>
+
+    <div id="workspace" class="min-w-0 flex-1 flex flex-col">
+      <header id="topbar" class="bg-white border-b border-slate-200 px-5 md:px-8 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p id="role-label" class="eyebrow mb-0.5"></p>
+          <h1 id="page-heading" class="font-extrabold text-xl"></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="today" class="text-sm muted hidden sm:block"></span>
+          <span id="profile" class="rounded-full px-4 py-1.5 text-sm font-bold"
+                style="background:#ccfbf1;color:#0f766e"></span>
+          <button type="button" id="switch-role" class="btn outline text-sm py-2">
+            تغییر نقش
+          </button>
+        </div>
+      </header>
+
+      <main class="p-5 md:p-8 max-w-[1400px] mx-auto w-full flex-1">
+        <!-- ==================== STUDENT VIEWS ==================== -->
+        <div id="student-home" class="view space-y-6">
+          <section class="rounded-2xl p-6 md:p-8 text-white relative overflow-hidden"
+                   style="background:linear-gradient(125deg,#0f172a 0%,#134e4a 100%)">
+            <div class="absolute -left-16 -bottom-20 w-64 h-64 rounded-full opacity-20"
+                 style="background:#14b8a6"></div>
+            <div class="relative flex flex-wrap justify-between gap-5 items-center">
+              <div>
+                <p class="text-teal-200 text-sm mb-1">سلام، خوش آمدید 👋</p>
+                <h2 class="font-extrabold text-2xl mb-1">علی رضایی</h2>
+                <p class="text-slate-300 text-sm">دانش‌آموز کلاس هشتم · شماره ۱۲۴</p>
+              </div>
+              <button type="button" data-go="student-menu" class="btn accent">
+                <i data-lucide="plus" style="width:16px;height:16px"></i>
+                ثبت سفارش جدید
+              </button>
+            </div>
+          </section>
+
+          <div class="grid sm:grid-cols-3 gap-4">
+            <article class="card stat p-5">
+              <p class="muted text-sm">موجودی کیف پول</p>
+              <p id="student-balance" class="font-extrabold mt-2 text-2xl"></p>
+            </article>
+            <article class="card stat p-5">
+              <p class="muted text-sm">سفارش فعال بعدی</p>
+              <p id="next-order" class="font-bold mt-2"></p>
+            </article>
+            <article class="card stat p-5">
+              <p class="muted text-sm">شماره دانش‌آموزی</p>
+              <p class="font-extrabold mt-2 text-2xl">۱۲۴</p>
+            </article>
+          </div>
+
+          <section class="card p-6">
+            <h2 class="font-bold mb-4">آخرین تراکنش‌ها</h2>
+            <div id="recent-transactions"></div>
+          </section>
+        </div>
+
+        <div id="student-menu" class="view space-y-6">
+          <div>
+            <p class="eyebrow">انتخاب سریع</p>
+            <h2 class="font-extrabold text-xl">منوی غذا</h2>
+            <p class="muted text-sm mt-1">غذای موردنظر را انتخاب کنید؛ روز تحویل را در مرحله بعد مشخص می‌کنید.</p>
+          </div>
+          <div id="menu-grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+        </div>
+
+        <div id="student-detail" class="view">
+          <div class="grid lg:grid-cols-[1.4fr_1fr] gap-6">
+            <section class="card p-6 md:p-8">
+              <p class="eyebrow mb-2">مرحله نهایی</p>
+              <h2 class="font-extrabold text-xl mb-6">جزئیات سفارش</h2>
+              <form id="order-form" class="space-y-5">
+                <div>
+                  <label for="order-day" class="block font-bold mb-2 text-sm">روز تحویل</label>
+                  <select id="order-day" class="field"></select>
+                </div>
+                <div>
+                  <label for="order-food" class="block font-bold mb-2 text-sm">غذای انتخابی</label>
+                  <select id="order-food" class="field"></select>
+                </div>
+                <button type="submit" class="btn primary w-full">تأیید و ثبت سفارش</button>
+              </form>
+            </section>
+            <aside class="card p-6 h-fit">
+              <h2 class="font-bold mb-4">خلاصه سفارش</h2>
+              <div class="flex justify-between py-3 border-b border-slate-100">
+                <span class="muted text-sm">قیمت</span>
+                <strong id="detail-price"></strong>
+              </div>
+              <div class="flex justify-between py-3">
+                <span class="muted text-sm">موجودی کیف پول</span>
+                <strong id="detail-balance"></strong>
+              </div>
+              <p class="muted text-xs mt-5 leading-6">
+                مبلغ از اعتبار نمایشی کیف پول کسر می‌شود. پرداخت واقعی انجام نمی‌شود.
+              </p>
+            </aside>
+          </div>
+        </div>
+
+        <div id="student-orders" class="view space-y-5">
+          <h2 class="font-extrabold text-xl">سفارش‌های من</h2>
+          <div id="orders-list" class="grid gap-4"></div>
+        </div>
+
+        <div id="student-wallet" class="view space-y-6">
+          <article class="rounded-2xl p-8 text-white"
+                   style="background:linear-gradient(120deg,#0f172a,#134e4a)">
+            <p class="text-slate-300 text-sm">موجودی فعلی کیف پول</p>
+            <p id="wallet-balance" class="text-4xl font-extrabold mt-3"></p>
+          </article>
+          <section class="card overflow-hidden">
+            <h2 class="font-bold p-5 border-b border-slate-100">تاریخچه کیف پول</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>شرح</th>
+                    <th>نوع</th>
+                    <th>مبلغ</th>
+                    <th>تاریخ</th>
+                  </tr>
+                </thead>
+                <tbody id="wallet-rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- ==================== VENDOR VIEWS ==================== -->
+        <div id="vendor-home" class="view space-y-6">
+          <section class="rounded-2xl p-7 text-white" style="background:#0f172a">
+            <p class="text-teal-300 text-sm">نمای عملیاتی بوفه</p>
+            <h2 class="font-extrabold text-xl mt-1">برنامه‌ریزی امروز · آماده‌سازی فردا</h2>
+            <p class="text-slate-400 text-sm mt-2">سفارش‌ها، تعداد غذا و وضعیت تحویل را یک‌جا ببینید.</p>
+          </section>
+          <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4" id="vendor-stats"></div>
+          <section class="card p-6">
+            <div class="flex flex-wrap justify-between gap-3 items-center">
+              <h2 class="font-bold">خلاصه آماده‌سازی فردا</h2>
+              <span class="badge confirmed">سفارش‌گیری فعال</span>
+            </div>
+            <div id="vendor-overview" class="mt-4"></div>
+          </section>
+        </div>
+
+        <div id="vendor-menu" class="view grid lg:grid-cols-2 gap-6">
+          <section class="card p-6">
+            <h2 class="font-bold mb-5">غذاهای منو</h2>
+            <div id="vendor-food-list" class="space-y-1"></div>
+          </section>
+          <section class="card p-6">
+            <h2 class="font-bold mb-5">افزودن غذای جدید</h2>
+            <form id="food-form" class="space-y-4">
+              <div>
+                <label for="add-name" class="block mb-1.5 text-sm font-medium">نام غذا</label>
+                <input id="add-name" class="field" required maxlength="60" placeholder="مثلاً چلو کباب">
+              </div>
+              <div>
+                <label for="add-description" class="block mb-1.5 text-sm font-medium">توضیحات</label>
+                <textarea id="add-description" class="field" rows="2" required maxlength="150"
+                          placeholder="مواد تشکیل‌دهنده و توضیحات کوتاه"></textarea>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="add-price" class="block mb-1.5 text-sm font-medium">قیمت (تومان)</label>
+                  <input id="add-price" class="field" type="number" min="1000" required placeholder="۱۵۰۰۰۰">
+                </div>
+                <div>
+                  <label for="add-capacity" class="block mb-1.5 text-sm font-medium">ظرفیت روزانه</label>
+                  <input id="add-capacity" class="field" type="number" min="1" required placeholder="۵۰">
+                </div>
+              </div>
+              <div>
+                <label for="add-date" class="block mb-1.5 text-sm font-medium">تاریخ ارائه</label>
+                <input id="add-date" class="field" type="date" required>
+              </div>
+              <p class="text-xs muted">غذاهای افزوده‌شده در این دمو با تصویر پیش‌فرض نمایش داده می‌شوند.</p>
+              <button type="submit" class="btn primary w-full">افزودن به منو</button>
+            </form>
+          </section>
+        </div>
+
+        <div id="vendor-report" class="view space-y-5">
+          <div class="flex flex-wrap justify-between gap-3 items-start">
+            <div>
+              <h2 class="font-extrabold text-xl">گزارش آماده‌سازی فردا</h2>
+              <p class="muted text-sm mt-1">تعداد سفارش‌های تأییدشده برای فردا</p>
+            </div>
+            <button type="button" id="print-report" class="btn outline no-print text-sm">
+              <i data-lucide="printer" style="width:16px;height:16px"></i>
+              چاپ گزارش
+            </button>
+          </div>
+          <div id="report-stats" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+          <section class="card overflow-hidden">
+            <h3 class="font-bold p-5 border-b border-slate-100">فهرست دانش‌آموزان سفارش‌دهنده</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>دانش‌آموز</th>
+                    <th>شماره</th>
+                    <th>غذا</th>
+                    <th>وضعیت</th>
+                  </tr>
+                </thead>
+                <tbody id="report-rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="vendor-delivery" class="view space-y-6">
+          <div class="grid lg:grid-cols-2 gap-5">
+            <section class="card p-7 text-center">
+              <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4"
+                   style="background:#ccfbf1;color:#0f766e">
+                <i data-lucide="scan-line" style="width:32px;height:32px"></i>
+              </div>
+              <h2 class="font-bold">تحویل با QR Code</h2>
+              <p class="muted text-sm mt-2">
+                اسکن QR در این دمو نمایشی است. برای تحویل از جست‌وجوی دانش‌آموز استفاده کنید.
+              </p>
+              <div class="w-32 h-32 mx-auto mt-5 border-2 border-dashed rounded-2xl flex items-center justify-center text-slate-300"
+                   style="border-color:#99f6e4">
+                <i data-lucide="qr-code" style="width:56px;height:56px"></i>
+              </div>
+            </section>
+            <section class="card p-6">
+              <h2 class="font-bold mb-3">جست‌وجو و تأیید تحویل</h2>
+              <label for="delivery-query" class="block mb-1.5 text-sm">نام یا شماره دانش‌آموزی</label>
+              <input id="delivery-query" class="field" autocomplete="off" placeholder="مثلاً علی یا ۱۲۴">
+              <div id="delivery-results" class="mt-5 space-y-3"></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- ==================== ADMIN VIEWS ==================== -->
+        <div id="admin-home" class="view space-y-6">
+          <div>
+            <p class="eyebrow">دید مدیریتی مدرسه</p>
+            <h2 class="font-extrabold text-xl">همه چیز در یک نگاه</h2>
+          </div>
+          <div id="admin-stats" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+          <div class="grid xl:grid-cols-2 gap-5">
+            <section class="card p-6">
+              <h3 class="font-bold mb-5">روند فروش هفتگی (نمونه)</h3>
+              <div class="h-60">
+                <canvas id="sales-chart" role="img" aria-label="نمودار فروش هفتگی"></canvas>
+              </div>
+            </section>
+            <section class="card p-6">
+              <h3 class="font-bold mb-5">محبوبیت غذاها · فردا</h3>
+              <div class="h-60">
+                <canvas id="food-chart" role="img" aria-label="نمودار محبوبیت غذاها"></canvas>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="admin-students" class="view space-y-5">
+          <h2 class="font-extrabold text-xl">مدیریت دانش‌آموزان</h2>
+          <div class="card p-4 flex flex-wrap gap-3">
+            <div class="flex-1 min-w-48">
+              <label for="student-search" class="block mb-1 text-sm">جست‌وجو</label>
+              <input id="student-search" class="field" placeholder="نام یا شماره دانش‌آموزی">
+            </div>
+            <div class="w-44">
+              <label for="class-filter" class="block mb-1 text-sm">فیلتر کلاس</label>
+              <select id="class-filter" class="field">
+                <option value="">همه کلاس‌ها</option>
+                <option>هفتم</option>
+                <option>هشتم</option>
+                <option>نهم</option>
+              </select>
+            </div>
+          </div>
+          <div class="card table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>نام</th>
+                  <th>کلاس</th>
+                  <th>شماره</th>
+                  <th>موجودی</th>
+                </tr>
+              </thead>
+              <tbody id="students-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="admin-topup" class="view grid lg:grid-cols-[1.3fr_1fr] gap-5">
+          <section class="card p-6 md:p-8">
+            <h2 class="font-extrabold text-xl mb-1">شارژ کیف پول</h2>
+            <p class="muted text-sm mb-6">این عملیات فقط موجودی نمایشی را تغییر می‌دهد.</p>
+            <form id="topup-form" class="space-y-4">
+              <div>
+                <label for="topup-student" class="block mb-1.5 text-sm font-medium">انتخاب دانش‌آموز</label>
+                <select id="topup-student" class="field"></select>
+              </div>
+              <div>
+                <label for="topup-amount" class="block mb-1.5 text-sm font-medium">مبلغ شارژ (تومان)</label>
+                <input id="topup-amount" class="field" type="number" min="1000" required placeholder="۱۰۰۰۰۰">
+              </div>
+              <div>
+                <label for="topup-method" class="block mb-1.5 text-sm font-medium">روش ثبت</label>
+                <select id="topup-method" class="field">
+                  <option value="نقدی">نقدی</option>
+                  <option value="واریز والدین">واریز والدین</option>
+                </select>
+              </div>
+              <div>
+                <label for="topup-description" class="block mb-1.5 text-sm font-medium">توضیحات (اختیاری)</label>
+                <textarea id="topup-description" class="field" rows="2" maxlength="120"></textarea>
+              </div>
+              <button type="submit" class="btn primary w-full">ثبت شارژ نمایشی</button>
+            </form>
+          </section>
+          <aside class="card p-6 h-fit">
+            <h2 class="font-bold mb-3">خلاصه حساب</h2>
+            <p id="topup-preview" class="muted text-sm leading-7"></p>
+          </aside>
+        </div>
+
+        <div id="admin-transactions" class="view space-y-5">
+          <h2 class="font-extrabold text-xl">گزارش تراکنش‌ها</h2>
+          <div class="card p-4 grid sm:grid-cols-3 gap-3">
+            <div>
+              <label for="tx-type" class="block text-sm mb-1">نوع تراکنش</label>
+              <select id="tx-type" class="field">
+                <option value="">همه</option>
+                <option value="شارژ">شارژها</option>
+                <option value="خرید">خریدها</option>
+                <option value="بازگشت وجه">بازگشت وجه</option>
+              </select>
+            </div>
+            <div>
+              <label for="tx-student" class="block text-sm mb-1">دانش‌آموز</label>
+              <select id="tx-student" class="field"></select>
+            </div>
+            <div>
+              <label for="tx-date" class="block text-sm mb-1">تاریخ</label>
+              <input id="tx-date" class="field" type="date">
+            </div>
+          </div>
+          <div class="card table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>دانش‌آموز</th>
+                  <th>شرح</th>
+                  <th>نوع</th>
+                  <th>مبلغ</th>
+                  <th>تاریخ</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ========== Utilities ==========
+    const $ = id => document.getElementById(id);
+    const fa = n => new Intl.NumberFormat('fa-IR').format(n);
+    const money = n => fa(n) + ' تومان';
+    const escapeHTML = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const todayDate = new Date();
+    todayDate.setHours(12, 0, 0, 0);
+    const isoOffset = n => {
+      const d = new Date(todayDate);
+      d.setDate(d.getDate() + n);
+      return d.toLocaleDateString('en-CA');
+    };
+    const prettyDate = s =>
+      new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' })
+        .format(new Date(s + 'T12:00:00'));
+
+    // ========== Data ==========
+    const foods = [
+      { id: 'chicken', name: 'چلو مرغ', price: 150000, capacity: 65, description: 'برنج ایرانی، مرغ زعفرانی و مخلفات' },
+      { id: 'cutlet', name: 'ساندویچ کتلت', price: 80000, capacity: 50, description: 'کتلت خانگی با سبزیجات تازه' },
+      { id: 'pasta', name: 'ماکارونی', price: 100000, capacity: 45, description: 'ماکارونی با سس خانگی و سالاد' }
+    ];
+
+    const students = [
+      { id: '124', name: 'علی رضایی', grade: 'هشتم', balance: 250000 },
+      { id: '125', name: 'سارا محمدی', grade: 'هفتم', balance: 180000 },
+      { id: '126', name: 'امیر حسینی', grade: 'نهم', balance: 320000 },
+      { id: '127', name: 'نرگس کریمی', grade: 'هشتم', balance: 95000 },
+      { id: '128', name: 'مهدی احمدی', grade: 'هفتم', balance: 210000 }
+    ];
+
+    const orders = [
+      { id: 1, studentId: '124', foodId: 'chicken', day: isoOffset(1), status: 'confirmed', price: 150000 },
+      { id: 2, studentId: '124', foodId: 'cutlet', day: isoOffset(-2), status: 'delivered', price: 80000 },
+      { id: 3, studentId: '125', foodId: 'cutlet', day: isoOffset(1), status: 'confirmed', price: 80000 },
+      { id: 4, studentId: '126', foodId: 'pasta', day: isoOffset(1), status: 'confirmed', price: 100000 },
+      { id: 5, studentId: '127', foodId: 'pasta', day: isoOffset(0), status: 'pending', price: 100000 },
+      { id: 6, studentId: '128', foodId: 'chicken', day: isoOffset(1), status: 'confirmed', price: 150000 }
+    ];
+
+    const transactions = [
+      { studentId: '124', type: 'شارژ', description: 'شارژ کیف پول', amount: 300000, date: isoOffset(-4) },
+      { studentId: '124', type: 'خرید', description: 'سفارش چلو مرغ', amount: -150000, date: isoOffset(-1) },
+      { studentId: '124', type: 'خرید', description: 'سفارش ساندویچ کتلت', amount: -80000, date: isoOffset(-3) },
+      { studentId: '125', type: 'شارژ', description: 'شارژ کیف پول', amount: 180000, date: isoOffset(-2) },
+      { studentId: '126', type: 'خرید', description: 'سفارش ماکارونی', amount: -100000, date: isoOffset(-1) }
+    ];
+
+    // ========== Role config — STRICT separation ==========
+    const navItems = {
+      student: [
+        ['student-home', 'داشبورد', 'layout-dashboard'],
+        ['student-menu', 'منوی غذا', 'utensils'],
+        ['student-detail', 'جزئیات سفارش', 'shopping-bag'],
+        ['student-orders', 'سفارش‌های من', 'clipboard-list'],
+        ['student-wallet', 'کیف پول', 'wallet']
+      ],
+      vendor: [
+        ['vendor-home', 'داشبورد فروشنده', 'layout-dashboard'],
+        ['vendor-menu', 'مدیریت منو', 'book-open'],
+        ['vendor-report', 'گزارش آماده‌سازی', 'chart-no-axes-column'],
+        ['vendor-delivery', 'تحویل غذا', 'scan-line']
+      ],
+      admin: [
+        ['admin-home', 'داشبورد مدیریت', 'layout-dashboard'],
+        ['admin-students', 'مدیریت دانش‌آموزان', 'users'],
+        ['admin-topup', 'شارژ کیف پول', 'wallet-cards'],
+        ['admin-transactions', 'گزارش تراکنش‌ها', 'receipt']
+      ]
+    };
+
+    const roles = {
+      student: 'دانش‌آموز',
+      vendor: 'فروشنده بوفه',
+      admin: 'مدیریت مدرسه'
+    };
+
+    const statuses = {
+      confirmed: ['تأییدشده', 'confirmed'],
+      pending: ['در انتظار', 'pending'],
+      cancelled: ['لغوشده', 'cancelled'],
+      delivered: ['تحویل‌شده', 'delivered']
+    };
+
+    // Food images for base items
+    const foodImages = {
+      chicken: 'https://images.pexels.com/photos/28678520/pexels-photo-28678520.jpeg?auto=compress&cs=tinysrgb&w=800',
+      cutlet: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=800',
+      pasta: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=800'
+    };
+
+    let role = null;
+    let currentView = null;
+    let selectedFood = 'chicken';
+    let nextId = 7;
+    let salesChart = null;
+    let foodChart = null;
+
+    // ========== Helpers ==========
+    function toast(message) {
+      const el = $('toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.remove('show'), 4200);
+    }
+
+    function foodById(id) { return foods.find(f => f.id === id); }
+    function studentById(id) { return students.find(s => s.id === id); }
+
+    function badge(status) {
+      const [text, cls] = statuses[status] || ['—', ''];
+      return `<span class="badge ${cls}">${text}</span>`;
+    }
+
+    function iconRefresh() {
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function emptyRow(n) {
+      return `<tr><td colspan="${n}" class="muted text-center py-8">موردی یافت نشد.</td></tr>`;
+    }
+
+    function transactionRow(t, withStudent) {
+      return `<tr>
+        ${withStudent ? `<td>${escapeHTML(studentById(t.studentId)?.name || '—')}</td>` : ''}
+        <td>${escapeHTML(t.description)}</td>
+        <td>${escapeHTML(t.type)}</td>
+        <td class="${t.amount > 0 ? 'text-emerald-700' : 'text-slate-800'} font-bold" dir="ltr">
+          ${t.amount > 0 ? '+' : ''}${money(t.amount)}
+        </td>
+        <td>${prettyDate(t.date)}</td>
+      </tr>`;
+    }
+
+    function stat(title, value) {
+      return `<article class="card stat p-5">
+        <p class="muted text-sm">${title}</p>
+        <p class="font-extrabold text-2xl mt-2">${value}</p>
+      </article>`;
+    }
+
+    // ========== Role entry — only inject allowed views ==========
+    function enter(r) {
+      role = r;
+      $('welcome').classList.add('hidden');
+      $('shell').classList.remove('hidden');
+      $('shell').classList.add('lg:flex');
+
+      $('profile').textContent =
+        r === 'student' ? 'علی رضایی' :
+        r === 'vendor' ? 'بوفه مدرسه' : 'دفتر مدرسه';
+
+      $('role-label').textContent = roles[r];
+      $('sidebar-role').textContent = roles[r];
+
+      // Build nav ONLY for this role
+      $('nav').innerHTML = navItems[r].map(([id, name, icon]) =>
+        `<button type="button" class="nav-btn" data-go="${id}">
+          <i data-lucide="${icon}" style="width:18px;height:18px" aria-hidden="true"></i>
+          ${name}
+        </button>`
+      ).join('');
+
+      // Hide ALL views first, then show the first allowed one
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      show(navItems[r][0][0]);
+    }
+
+    function show(id) {
+      if (!role) return;
+
+      // STRICT check: only allow views that belong to current role
+      const allowed = navItems[role].some(item => item[0] === id);
+      if (!allowed) {
+        toast('این بخش فقط برای نقش «' + roles[role] + '» قابل دسترسی نیست.');
+        return;
+      }
+
+      document.querySelectorAll('.view').forEach(v =>
+        v.classList.toggle('active', v.id === id)
+      );
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        const isActive = b.dataset.go === id;
+        b.classList.toggle('active', isActive);
+        if (isActive) b.setAttribute('aria-current', 'page');
+        else b.removeAttribute('aria-current');
+      });
+
+      currentView = id;
+      $('page-heading').textContent = navItems[role].find(item => item[0] === id)[1];
+      render();
+      iconRefresh();
+
+      if (id === 'admin-home') requestAnimationFrame(drawCharts);
+    }
+
+    // ========== Render functions (role-aware) ==========
+    function render() {
+      if (!role) return;
+
+      if (role === 'student') renderStudent();
+      else if (role === 'vendor') renderVendor();
+      else if (role === 'admin') renderAdmin();
+    }
+
+    function renderStudent() {
+      const me = students[0]; // علی رضایی
+
+      $('student-balance').textContent = money(me.balance);
+      $('wallet-balance').textContent = money(me.balance);
+      $('detail-balance').textContent = money(me.balance);
+
+      const next = orders.find(o =>
+        o.studentId === '124' && o.status === 'confirmed' && o.day >= isoOffset(0)
+      );
+      $('next-order').textContent = next
+        ? foodById(next.foodId).name + ' · ' + prettyDate(next.day)
+        : 'سفارش فعالی ندارید';
+
+      // Menu grid
+      $('menu-grid').innerHTML = foods.map(f => {
+        const img = foodImages[f.id]
+          ? `<img class="food-photo" loading="lazy" src="${foodImages[f.id]}" alt="${escapeHTML(f.name)}">`
+          : `<div class="food-photo flex items-center justify-center text-teal-600 bg-teal-50">
+               <i data-lucide="utensils" style="width:36px;height:36px"></i>
+             </div>`;
+        return `<article class="card p-4 overflow-hidden">
+          ${img}
+          <div class="pt-3">
+            <h3 class="font-bold">${escapeHTML(f.name)}</h3>
+            <p class="muted text-sm mt-1">${escapeHTML(f.description)}</p>
+            <div class="flex justify-between items-center mt-3">
+              <strong>${money(f.price)}</strong>
+              <span class="text-xs muted">${fa(f.capacity)} ظرفیت</span>
+            </div>
+            <button type="button" data-food="${escapeHTML(f.id)}"
+                    class="btn primary w-full mt-4" ${f.capacity < 1 ? 'disabled' : ''}>
+              ${f.capacity < 1 ? 'ظرفیت تکمیل' : 'انتخاب و سفارش'}
+            </button>
+          </div>
+        </article>`;
+      }).join('');
+
+      // Order form selects
+      const foodSelect = $('order-food');
+      const old = foodSelect.value || selectedFood;
+      foodSelect.innerHTML = foods.map(f =>
+        `<option value="${escapeHTML(f.id)}">${escapeHTML(f.name)} · ${money(f.price)}</option>`
+      ).join('');
+      foodSelect.value = foods.some(f => f.id === old) ? old : 'chicken';
+      selectedFood = foodSelect.value;
+      $('detail-price').textContent = money(foodById(selectedFood).price);
+
+      // Recent transactions
+      const myTx = transactions.filter(t => t.studentId === '124').slice(0, 4);
+      $('recent-transactions').innerHTML = myTx.length
+        ? myTx.map(t =>
+            `<div class="flex justify-between gap-3 py-3 border-b border-slate-100 last:border-0">
+              <span>${escapeHTML(t.description)}
+                <small class="muted mr-2">${prettyDate(t.date)}</small>
+              </span>
+              <strong class="${t.amount > 0 ? 'text-emerald-700' : ''}">
+                ${t.amount > 0 ? '+' : ''}${money(t.amount)}
+              </strong>
+            </div>`
+          ).join('')
+        : '<p class="muted text-sm">تراکنشی وجود ندارد.</p>';
+
+      // Wallet rows
+      $('wallet-rows').innerHTML = transactions
+        .filter(t => t.studentId === '124')
+        .map(t => transactionRow(t, false))
+        .join('') || emptyRow(4);
+
+      // Orders list
+      const myOrders = orders
+        .filter(o => o.studentId === '124')
+        .sort((a, b) => b.day.localeCompare(a.day));
+
+      $('orders-list').innerHTML = myOrders.length
+        ? myOrders.map(o => {
+            const canCancel = o.status === 'confirmed' && o.day > isoOffset(0);
+            return `<article class="card p-5 flex flex-wrap justify-between items-center gap-4">
+              <div>
+                <h3 class="font-bold">${escapeHTML(foodById(o.foodId).name)}</h3>
+                <p class="muted text-sm mt-1">${prettyDate(o.day)} · ${money(o.price)}</p>
+              </div>
+              <div class="flex items-center gap-3">
+                ${badge(o.status)}
+                ${canCancel
+                  ? `<button type="button" class="btn outline text-sm danger-btn" data-cancel="${o.id}">لغو سفارش</button>`
+                  : ''}
+              </div>
+            </article>`;
+          }).join('')
+        : '<p class="card p-6 muted text-center">هنوز سفارشی ثبت نشده است.</p>';
+    }
+
+    function renderVendor() {
+      const tomorrow = isoOffset(1);
+      const confirmedTomorrow = orders.filter(o => o.day === tomorrow && o.status === 'confirmed');
+
+      // Base counts + new orders
+      const baseCounts = { chicken: 52, cutlet: 41, pasta: 33 };
+      const counts = foods.map(f => {
+        const extra = confirmedTomorrow.filter(o => o.foodId === f.id && o.id >= 7).length;
+        return (baseCounts[f.id] || 0) + extra;
+      });
+
+      const totalOrders = counts.reduce((a, b) => a + b, 0);
+
+      $('vendor-stats').innerHTML =
+        stat('سفارش‌های فردا', fa(totalOrders)) +
+        stat('مجموع غذای موردنیاز', fa(totalOrders) + ' پرس') +
+        stat('مجموع فروش نمونه', money(14800000)) +
+        stat('تحویل‌نشده امروز', fa(
+          orders.filter(o => o.day === isoOffset(0) && o.status !== 'delivered' && o.status !== 'cancelled').length
+        ));
+
+      $('vendor-overview').innerHTML = foods.map((f, i) =>
+        `<div class="flex justify-between py-3 border-b border-slate-100 last:border-0">
+          <span>${escapeHTML(f.name)}</span>
+          <strong>${fa(counts[i])} پرس</strong>
+        </div>`
+      ).join('');
+
+      $('vendor-food-list').innerHTML = foods.map(f =>
+        `<div class="border-b border-slate-100 py-4 flex justify-between gap-3 last:border-0">
+          <div>
+            <strong>${escapeHTML(f.name)}</strong>
+            <p class="muted text-sm mt-0.5">${escapeHTML(f.description)}</p>
+          </div>
+          <div class="text-left shrink-0">
+            <strong>${money(f.price)}</strong>
+            <p class="muted text-sm">${fa(f.capacity)} ظرفیت</p>
+          </div>
+        </div>`
+      ).join('');
+
+      $('report-stats').innerHTML =
+        foods.map((f, i) => stat(escapeHTML(f.name), fa(counts[i]) + ' پرس')).join('') +
+        stat('مجموع تأییدشده', fa(totalOrders) + ' پرس');
+
+      $('report-rows').innerHTML = confirmedTomorrow.map(o =>
+        `<tr>
+          <td>${escapeHTML(studentById(o.studentId)?.name || '—')}</td>
+          <td>${fa(Number(o.studentId))}</td>
+          <td>${escapeHTML(foodById(o.foodId).name)}</td>
+          <td>${badge(o.status)}</td>
+        </tr>`
+      ).join('') || emptyRow(4);
+
+      renderDelivery();
+    }
+
+    function renderDelivery() {
+      const raw = $('delivery-query').value.trim();
+      // Normalize Persian/Arabic digits
+      const q = raw
+        .replace(/[۰-۹]/g, c => '۰۱۲۳۴۵۶۷۸۹'.indexOf(c))
+        .replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c));
+
+      if (!q) {
+        $('delivery-results').innerHTML =
+          '<p class="muted text-sm">برای نمایش سفارش، نام یا شماره دانش‌آموز را وارد کنید.</p>';
+        return;
+      }
+
+      const matched = students.filter(s => s.name.includes(q) || s.id.includes(q));
+      if (!matched.length) {
+        $('delivery-results').innerHTML = '<p class="muted text-sm">دانش‌آموزی یافت نشد.</p>';
+        return;
+      }
+
+      $('delivery-results').innerHTML = matched.map(s => {
+        const active = orders.filter(o =>
+          o.studentId === s.id && o.day === isoOffset(0) && o.status !== 'cancelled'
+        );
+        return `<article class="rounded-xl border border-slate-200 p-4">
+          <strong>${escapeHTML(s.name)} · ${fa(Number(s.id))}</strong>
+          ${active.length
+            ? active.map(o =>
+                `<div class="flex flex-wrap justify-between items-center gap-2 mt-3">
+                  <span>${escapeHTML(foodById(o.foodId).name)} ${badge(o.status)}</span>
+                  ${o.status === 'delivered'
+                    ? '<span class="text-blue-700 text-sm font-bold">قبلاً تحویل داده شده</span>'
+                    : `<button type="button" class="btn primary text-sm" data-deliver="${o.id}">تأیید تحویل</button>`}
+                </div>`
+              ).join('')
+            : '<p class="muted text-sm mt-2">برای امروز سفارش فعالی ثبت نشده است.</p>'}
+        </article>`;
+      }).join('');
+    }
+
+    function renderAdmin() {
+      $('admin-stats').innerHTML =
+        stat('دانش‌آموزان', fa(428)) +
+        stat('مجموع اعتبار کیف پول‌ها', money(78500000 + students[0].balance - 250000)) +
+        stat('فروش امروز', money(9200000)) +
+        stat('سفارش‌های فردا', fa(
+          126 + orders.filter(o => o.id >= 7 && o.day === isoOffset(1) && o.status === 'confirmed').length
+        ));
+
+      const q = $('student-search').value.trim();
+      const grade = $('class-filter').value;
+      $('students-rows').innerHTML = students
+        .filter(s => (!q || s.name.includes(q) || s.id.includes(q)) && (!grade || s.grade === grade))
+        .map(s =>
+          `<tr>
+            <td class="font-bold">${escapeHTML(s.name)}</td>
+            <td>${s.grade}</td>
+            <td>${fa(Number(s.id))}</td>
+            <td>${money(s.balance)}</td>
+          </tr>`
+        ).join('') || emptyRow(4);
+
+      const type = $('tx-type').value;
+      const sid = $('tx-student').value;
+      const date = $('tx-date').value;
+      $('transactions-rows').innerHTML = transactions
+        .filter(t => (!type || t.type === type) && (!sid || t.studentId === sid) && (!date || t.date === date))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map(t => transactionRow(t, true))
+        .join('') || emptyRow(5);
+
+      const selected = studentById($('topup-student').value) || students[0];
+      $('topup-preview').textContent =
+        `${selected.name} · کلاس ${selected.grade} · موجودی فعلی ${money(selected.balance)}. این شارژ فقط در نسخه نمایشی اعمال می‌شود.`;
+    }
+
+    function drawCharts() {
+      if (!window.Chart) return;
+      Chart.defaults.font.family = 'Vazirmatn';
+      Chart.defaults.color = '#64748b';
+
+      if (salesChart) salesChart.destroy();
+      if (foodChart) foodChart.destroy();
+
+      salesChart = new Chart($('sales-chart'), {
+        type: 'bar',
+        data: {
+          labels: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه'],
+          datasets: [{
+            label: 'فروش (میلیون تومان)',
+            data: [7.2, 8.4, 7.9, 9.6, 9.2, 5.1],
+            backgroundColor: '#14b8a6',
+            borderRadius: 8,
+            maxBarThickness: 36
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+
+      const base = [52, 41, 33];
+      const extra = foods.map(f =>
+        orders.filter(o => o.id >= 7 && o.day === isoOffset(1) && o.status === 'confirmed' && o.foodId === f.id).length
+      );
+
+      foodChart = new Chart($('food-chart'), {
+        type: 'doughnut',
+        data: {
+          labels: foods.map(f => f.name),
+          datasets: [{
+            data: base.map((n, i) => n + extra[i]),
+            backgroundColor: ['#0f172a', '#14b8a6', '#94a3b8'],
+            borderWidth: 0,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { padding: 16, usePointStyle: true }
+            }
+          }
+        }
+      });
+    }
+
+    // ========== Event listeners ==========
+    document.addEventListener('click', e => {
+      const roleBtn = e.target.closest('[data-role]');
+      if (roleBtn) {
+        enter(roleBtn.dataset.role);
+        return;
+      }
+
+      const nav = e.target.closest('[data-go]');
+      if (nav) {
+        show(nav.dataset.go);
+        return;
+      }
+
+      // Student selects a food → only if student role
+      const foodBtn = e.target.closest('[data-food]');
+      if (foodBtn && role === 'student') {
+        selectedFood = foodBtn.dataset.food;
+        show('student-detail');
+        return;
+      }
+
+      // Cancel order — student only
+      const cancelBtn = e.target.closest('[data-cancel]');
+      if (cancelBtn && role === 'student') {
+        const o = orders.find(x => x.id === Number(cancelBtn.dataset.cancel));
+        if (o && o.status === 'confirmed' && o.day > isoOffset(0)) {
+          o.status = 'cancelled';
+          studentById(o.studentId).balance += o.price;
+          transactions.unshift({
+            studentId: o.studentId,
+            type: 'بازگشت وجه',
+            description: 'لغو سفارش ' + foodById(o.foodId).name,
+            amount: o.price,
+            date: isoOffset(0)
+          });
+          toast('سفارش لغو شد و مبلغ به کیف پول برگشت.');
+          render();
+        }
+        return;
+      }
+
+      // Deliver — vendor only
+      const deliverBtn = e.target.closest('[data-deliver]');
+      if (deliverBtn && role === 'vendor') {
+        const o = orders.find(x => x.id === Number(deliverBtn.dataset.deliver));
+        if (o && o.day === isoOffset(0) && o.status !== 'delivered' && o.status !== 'cancelled') {
+          o.status = 'delivered';
+          toast('تحویل غذا ثبت شد.');
+          render();
+        } else {
+          toast('این سفارش قابل تحویل دوباره نیست.');
+        }
+      }
+    });
+
+    $('switch-role').addEventListener('click', () => {
+      role = null;
+      currentView = null;
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      $('shell').classList.add('hidden');
+      $('shell').classList.remove('lg:flex');
+      $('welcome').classList.remove('hidden');
+    });
+
+    // Order form — student only (guarded by role in show)
+    $('order-food').addEventListener('change', e => {
+      selectedFood = e.target.value;
+      $('detail-price').textContent = money(foodById(selectedFood).price);
+    });
+
+    $('order-form').addEventListener('submit', e => {
+      e.preventDefault();
+      if (role !== 'student') return;
+
+      const f = foodById($('order-food').value);
+      const day = $('order-day').value;
+      if (!f || !day) return;
+
+      if (f.capacity < 1) return toast('ظرفیت این غذا تکمیل شده است.');
+      if (students[0].balance < f.price) return toast('موجودی کیف پول کافی نیست.');
+
+      orders.unshift({
+        id: nextId++,
+        studentId: '124',
+        foodId: f.id,
+        day,
+        status: 'confirmed',
+        price: f.price
+      });
+      students[0].balance -= f.price;
+      f.capacity--;
+      transactions.unshift({
+        studentId: '124',
+        type: 'خرید',
+        description: 'سفارش ' + f.name,
+        amount: -f.price,
+        date: isoOffset(0)
+      });
+      toast('سفارش با موفقیت ثبت شد.');
+      show('student-orders');
+    });
+
+    // Food form — vendor only
+    $('food-form').addEventListener('submit', e => {
+      e.preventDefault();
+      if (role !== 'vendor') {
+        toast('فقط فروشنده می‌تواند غذا اضافه کند.');
+        return;
+      }
+
+      const name = $('add-name').value.trim();
+      const description = $('add-description').value.trim();
+      const price = Number($('add-price').value);
+      const capacity = Number($('add-capacity').value);
+      const date = $('add-date').value;
+
+      if (!name || !description || price < 1000 || capacity < 1 || !date) {
+        return toast('اطلاعات غذا را کامل و درست وارد کنید.');
+      }
+
+      foods.push({
+        id: 'custom-' + Date.now(),
+        name,
+        description,
+        price,
+        capacity,
+        date
+      });
+      e.target.reset();
+      $('add-date').value = isoOffset(1);
+      toast('غذای جدید به منو اضافه شد.');
+      render();
+      iconRefresh();
+    });
+
+    // Topup form — admin only
+    $('topup-form').addEventListener('submit', e => {
+      e.preventDefault();
+      if (role !== 'admin') {
+        toast('فقط مدیریت مدرسه می‌تواند شارژ انجام دهد.');
+        return;
+      }
+
+      const s = studentById($('topup-student').value);
+      const amount = Number($('topup-amount').value);
+      if (!s || amount < 1000) return toast('دانش‌آموز و مبلغ معتبر انتخاب کنید.');
+
+      s.balance += amount;
+      transactions.unshift({
+        studentId: s.id,
+        type: 'شارژ',
+        description: 'شارژ ' + $('topup-method').value +
+          ($('topup-description').value.trim() ? ' · ' + $('topup-description').value.trim() : ''),
+        amount,
+        date: isoOffset(0)
+      });
+      $('topup-amount').value = '';
+      $('topup-description').value = '';
+      toast('شارژ نمایشی ثبت شد.');
+      render();
+    });
+
+    // Filters
+    ['student-search', 'class-filter', 'tx-type', 'tx-student', 'tx-date', 'topup-student']
+      .forEach(id => {
+        const el = $(id);
+        if (el) el.addEventListener(id.includes('search') ? 'input' : 'change', () => {
+          if (role === 'admin') renderAdmin();
+        });
+      });
+
+    $('delivery-query').addEventListener('input', () => {
+      if (role === 'vendor') renderDelivery();
+    });
+
+    $('print-report').addEventListener('click', () => window.print());
+
+    // Init
+    $('today').textContent = new Intl.DateTimeFormat('fa-IR', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    }).format(todayDate);
+
+    $('order-day').innerHTML = [1, 2, 3, 4, 5].map(n =>
+      `<option value="${isoOffset(n)}">${prettyDate(isoOffset(n))}</option>`
+    ).join('');
+
+    $('add-date').min = isoOffset(0);
+    $('add-date').value = isoOffset(1);
+
+    $('topup-student').innerHTML = students.map(s =>
+      `<option value="${s.id}">${s.name} · ${fa(Number(s.id))}</option>`
+    ).join('');
+
+    $('tx-student').innerHTML =
+      '<option value="">همه دانش‌آموزان</option>' +
+      students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+    iconRefresh();
+  </script>
+</body>
+</html>
